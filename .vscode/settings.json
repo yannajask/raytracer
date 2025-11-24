@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.deduck": "deduck",
+        "iostream": "cpp"
+    }
+}
