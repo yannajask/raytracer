@@ -22,6 +22,16 @@ class interval {
             return min < x && x < max;
         }
 
+        double clamp(double x) const {
+            if (x < min) {
+                return min;
+            } else if (x > max) {
+                return max;
+            } else {
+                return x;
+            }
+        }
+
         static const interval empty, universe;
 };
 

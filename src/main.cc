@@ -1,64 +1,28 @@
 #include "utils.h"
+#include "camera.h"
 #include "hittable.h"
 #include "hittable_list.h"
+#include "material.h"
 #include "sphere.h"
 
-colour ray_colour(const ray &r, const hittable &scene) {
-    hit_record rec;
-    if (scene.hit(r, interval(0, infinity), rec)) {
-        return 0.5 * (rec.normal + colour(1, 1, 1));
-    } else {
-        vec3 unit_direction = unit_vector(r.direction());
-        double a = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0 - a) * colour(1.0, 1.0, 1.0) + a * colour(0.5, 0.7, 1.0);
-    }
-}
-
 int main() {
-    // Image size
-    double aspect_ratio = 16.0 / 9.0;
-    int image_width = 400;
-
-    // Calculate image height based on aspect ratio
-    int image_height = int(image_width / aspect_ratio);
-    image_height = (image_height < 1) ? 1 : image_height;
-
-    // Scene
     hittable_list scene;
-    scene.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
-    scene.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
-    // Camera
-    double focal_length = 1.0;
-    double viewport_height = 2.0;
-    double viewport_width = viewport_height * (double(image_width) / image_height);
-    point3 camera_center = point3(0, 0, 0);
+    auto material_ground = make_shared<lambertian>(colour(0.8, 0.8, 0.0));
+    auto material_center = make_shared<lambertian>(colour(0.1, 0.2, 0.5));
+    auto material_left = make_shared<metal>(colour(0.8, 0.8, 0.8));
+    auto material_right = make_shared<metal>(colour(0.8, 0.6, 0.2));
 
-    // Vectors across horizontal and down vertical viewport edges
-    vec3 viewport_u = vec3(viewport_width, 0, 0);
-    vec3 viewport_v = vec3(0, -viewport_height, 0);
+    scene.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+    scene.add(make_shared<sphere>(point3(0.0, 0.0, -1.2), 0.5, material_center));
+    scene.add(make_shared<sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    scene.add(make_shared<sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
 
-    // Horizontal and vertical delta vectors from pixel to pixel
-    vec3 pixel_delta_u = viewport_u / image_width;
-    vec3 pixel_delta_v = viewport_v / image_height;
+    camera cam;
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 400;
+    cam.samples_per_pixel = 100;
+    cam.max_depth = 50;
 
-    // Location of upper left pixel
-    point3 viewport_upper_left = camera_center - vec3(0, 0, focal_length) - (viewport_u / 2) - (viewport_v / 2);
-    point3 pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
-
-    // Render image
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-
-    for (int j = 0; j < image_height; j++) {
-        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-        for (int i = 0; i < image_width; i++) {
-            point3 pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-            vec3 ray_direction = pixel_center - camera_center;
-            ray r(camera_center, ray_direction);
-            colour pixel_colour = ray_colour(r, scene);
-            write_colour(std::cout, pixel_colour);
-        }
-    }
-
-    std::clog << "\rDone.               \n";
+    cam.render(scene);
 }
