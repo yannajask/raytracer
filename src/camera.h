@@ -22,22 +22,38 @@ class camera {
         void render(const hittable &scene) {
             initialize();
 
-            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            std::vector<colour> image(image_height * image_width);
+            int rows_processed = 0;        // For progress bar
 
-            for (int j = 0; j < image_height; j++) {
-                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-                for (int i = 0; i < image_width; i++) {
+            omp_set_num_threads(8);
+            #pragma omp parallel for
+            for (int row = 0; row < image_height; row++) {
+                for (int col = 0; col < image_width; col++) {
                     colour pixel_colour(0, 0, 0);
+
                     for (int sample = 0; sample < samples_per_pixel; sample++) {
-                        ray r = get_ray(i, j);
+                        ray r = get_ray(col, row);
                         pixel_colour += ray_colour(r, max_depth, scene);
                     }
 
-                    write_colour(std::cout, pixel_samples_scale * pixel_colour);
+                    image[row * image_width + col] = pixel_colour * pixel_samples_scale;
+                }
+
+                #pragma omp atomic
+                rows_processed++;
+
+                #pragma omp critical
+                std::clog << "\rScanlines remaining: " << (image_height - rows_processed) << ' ' << std::flush;
+            }
+
+            std::clog << "\rDone.                       \n";
+            std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+            for (int row = 0; row < image_height; row++) {
+                for (int col = 0; col < image_width; col++) {
+                    write_colour(std::cout, image[row * image_width + col]);
                 }
             }
 
-            std::clog << "\rDone.                           \n";
         }
 
     private:
