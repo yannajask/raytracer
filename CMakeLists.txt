@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(OpenMP_C_FLAGS "-fopenmp")
-set(OpenMP_CXX_FLAGS "-fopenmp")
+set(OpenMP_CXX_FLAGS "-fopenmp -Wall -g -O3")
 set(OpenMP_C_LIB_NAMES "omp")
 set(OpenMP_CXX_LIB_NAMES "omp")
 set(OpenMP_omp_LIBRARY "/opt/homebrew/opt/llvm/lib/libomp.dylib")
