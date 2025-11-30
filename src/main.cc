@@ -59,6 +59,7 @@ void in_one_weekend() {
     cam.image_width = 1200;
     cam.samples_per_pixel = 500;
     cam.max_depth = 50;
+    cam.background = colour(0.70, 0.80, 1.00);
 
     cam.vfov = 20;
     cam.lookfrom = point3(13, 2, 3);
@@ -85,6 +86,7 @@ void checkered_spheres() {
     cam.image_width = 400;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+    cam.background = colour(0.70, 0.80, 1.00);
 
     cam.vfov = 20;
     cam.lookfrom = point3(13, 2, 3);
@@ -96,41 +98,54 @@ void checkered_spheres() {
     cam.render(scene);
 }
 
-void quads() {
+void infinity_room() {
     hittable_list scene;
 
+    auto mirror = make_shared<metal>(colour(0.5, 0.55, 0.53), 0.0);
+    auto ball = make_shared<metal>(colour(0.5, 0.6, 0.5), 0.05);
+    auto white = make_shared<lambertian>(colour(.73, .73, .73));
+    auto black = make_shared<lambertian>(colour(0.02, 0.02, 0.02));
+    auto light = make_shared<diffuse_light>(colour(20, 20, 20));
 
-    // Materials
-    auto left_red     = make_shared<lambertian>(colour(1.0, 0.2, 0.2));
-    auto back_green   = make_shared<lambertian>(colour(0.2, 1.0, 0.2));
-    auto right_blue   = make_shared<lambertian>(colour(0.2, 0.2, 1.0));
-    auto upper_orange = make_shared<lambertian>(colour(1.0, 0.5, 0.0));
-    auto lower_teal   = make_shared<lambertian>(colour(0.2, 0.8, 0.8));
+    scene.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0), vec3(0,0,555), mirror));
+    scene.add(make_shared<quad>(point3(0,0,0), vec3(0,555,0), vec3(0,0,555), mirror));
+    scene.add(make_shared<quad>(point3(5, 554, 5), vec3(545,0,0), vec3(0,0,545), light));
+    scene.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555), black));
+    scene.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
+    scene.add(make_shared<quad>(point3(0,0,555), vec3(555,0,0), vec3(0,555,0), mirror));
+    scene.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,555,0), mirror));
 
-    // Quads
-    scene.add(make_shared<quad>(point3(-3,-2, 5), vec3(0, 0,-4), vec3(0, 4, 0), left_red));
-    scene.add(make_shared<quad>(point3(-2,-2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
-    scene.add(make_shared<quad>(point3( 3,-2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
-    scene.add(make_shared<quad>(point3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
-    scene.add(make_shared<quad>(point3(-2,-3, 5), vec3(4, 0, 0), vec3(0, 0,-4), lower_teal));
+    for (int i = 0; i < 35; i++) {
+        double radius = random_double(15, 35);
+        point3 center(random_double(35, 520), radius, i + random_int(35, 520));
+        scene.add(make_shared<sphere>(center, radius, ball));
+    }
+
+    for (int i = 0; i < 10; i++) {
+        double radius = random_double(15, 20);
+        point3 center(random_double(50, 500), random_double(100, 400), i + random_int(50, 500));
+        scene.add(make_shared<sphere>(center, radius, ball));
+    }
+
+    scene = hittable_list(make_shared<bvh_node>(scene));
 
     camera cam;
 
-    cam.aspect_ratio      = 1.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 100;
-    cam.max_depth         = 50;
+    cam.aspect_ratio = 1.0;
+    cam.image_width = 1000;
+    cam.samples_per_pixel = 500;
+    cam.max_depth = 50;
+    cam.background = colour(0, 0, 0);
 
-    cam.vfov     = 80;
-    cam.lookfrom = point3(0,0,9);
-    cam.lookat   = point3(0,0,0);
-    cam.vup      = vec3(0,1,0);
-
+    cam.vfov = 20;
+    cam.lookfrom = point3(200, 278, 5);
+    cam.lookat = point3(278, 278, 100);
+    cam.vup = vec3(0, 1, 0);
     cam.defocus_angle = 0;
 
     cam.render(scene);
 }
 
 int main() {
-    quads();
+    infinity_room();
 }
