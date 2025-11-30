@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "bvh.h"
 #include "camera.h"
 #include "hittable.h"
 #include "hittable_list.h"
@@ -48,11 +49,13 @@ int main() {
     auto material3 = make_shared<metal>(colour(0.7, 0.6, 0.5), 0.0);
     scene.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
+    scene = hittable_list(make_shared<bvh_node>(scene));
+
     camera cam;
 
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 1200;
-    cam.samples_per_pixel = 500;
+    cam.samples_per_pixel = 10;
     cam.max_depth = 50;
 
     cam.vfov = 20;
